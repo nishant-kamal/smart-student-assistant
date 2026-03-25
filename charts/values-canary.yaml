@@ -1,0 +1,18 @@
+replicaCount: 1
+image:
+  repository: smart-student-assistant
+  tag: canary
+  pullPolicy: Never
+
+service:
+  backendPort: 8000
+  frontendPort: 8501
+
+version: canary
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"

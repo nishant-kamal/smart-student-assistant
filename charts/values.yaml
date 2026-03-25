@@ -1,0 +1,18 @@
+replicaCount: 1
+image:
+  repository: smart-student-assistant
+  tag: stable
+  pullPolicy: Never       # use local image in Minikube
+
+service:
+  backendPort: 8000
+  frontendPort: 8501
+
+version: stable           # used as label for Istio routing
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"

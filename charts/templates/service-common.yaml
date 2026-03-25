@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-assistant
+  labels:
+    app: student-assistant
+spec:
+  selector:
+    app: student-assistant   # matches both versions
+  ports:
+    - name: backend
+      port: 8000
+      targetPort: 8000
+    - name: frontend
+      port: 8501
+      targetPort: 8501

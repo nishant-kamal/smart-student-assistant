@@ -15,9 +15,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# Logging path (backend/logs folder)
-os.makedirs("backend/logs", exist_ok=True)
-LOG_PATH = "backend/logs/requests.log"
+# Logging path (backend/logs folder) — resolved relative to this file,
+# not the process's current working directory, so it works the same
+# whether run via `uvicorn backend.app:app` from /app or locally from backend/.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_PATH = os.path.join(LOG_DIR, "requests.log")
 
 def log_event(entry):
     try:
@@ -29,17 +33,26 @@ def log_event(entry):
 # =============================
 # Load Fine-Tuned Model If Exists
 # =============================
-FINETUNED_MODEL_PATH = "models/distilbert-qa-final"
+FINETUNED_MODEL_PATH = os.path.join(BASE_DIR, "models", "distilbert-qa-final")
 
 print("Startup: checking models...")
 
+qa_model = None
 if os.path.exists(FINETUNED_MODEL_PATH):
-    print(f" Loading fine-tuned model from {FINETUNED_MODEL_PATH}")
-    tokenizer = AutoTokenizer.from_pretrained(FINETUNED_MODEL_PATH)
-    model = AutoModelForQuestionAnswering.from_pretrained(FINETUNED_MODEL_PATH)
-    qa_model = pipeline("question-answering", model=model, tokenizer=tokenizer)
-else:
-    print("ℹ️ Fine-tuned model not found — using default model.")
+    try:
+        print(f" Loading fine-tuned model from {FINETUNED_MODEL_PATH}")
+        tokenizer = AutoTokenizer.from_pretrained(FINETUNED_MODEL_PATH)
+        model = AutoModelForQuestionAnswering.from_pretrained(FINETUNED_MODEL_PATH)
+        qa_model = pipeline("question-answering", model=model, tokenizer=tokenizer)
+    except Exception as e:
+        # Fine-tuned artifact exists but failed to load (e.g. corrupted or
+        # incomplete weights file). Don't take the whole API down for this —
+        # fall back to the public default model instead.
+        print(f"⚠️ Failed to load fine-tuned model ({e}); falling back to default model.")
+        qa_model = None
+
+if qa_model is None:
+    print("ℹ️ Fine-tuned model not found or failed to load — using default model.")
     qa_model = pipeline("question-answering", model="deepset/roberta-base-squad2")
 
 # Summarizer Model

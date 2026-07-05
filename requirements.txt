@@ -9,6 +9,7 @@ datasets>=2.14.0
 evaluate>=0.4.0
 rouge-score>=0.1.2
 Pillow>=10.0.0
+pytesseract>=0.3.10
 torchvision>=0.15.0
 huggingface-hub>=0.17.0
 streamlit>=1.28.0
